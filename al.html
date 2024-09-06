@@ -57,13 +57,13 @@
                     }
 
                     // Circles
-                    ctx.beginPath();
-                    for (let i = 0; i < bufferLength; i++) {
-                        const radius = dataArray[i] / 4;
-                        const angle = (i / bufferLength) * Math.PI * 2;
-                        const x = canvas.width / 2 + Math.cos(angle) * radius * 5;
-                        const y = canvas.height / 2 + Math.sin(angle) * radius * 5;
-                        const color = `rgb(${dataArray[i]}, ${dataArray[i] / 2}, 255)`;
+                    //ctx.beginPath();
+                    //for (let i = 0; i < bufferLength; i++) {
+                    //    const radius = dataArray[i] / 4;
+                    //    const angle = (i / bufferLength) * Math.PI * 2;
+                    //    const x = canvas.width / 2 + Math.cos(angle) * radius * 5;
+                    //    const y = canvas.height / 2 + Math.sin(angle) * radius * 5;
+                    //    const color = `rgb(${dataArray[i]}, ${dataArray[i] / 2}, 255)`;
 
                         ctx.fillStyle = color;
                         ctx.arc(x, y, radius, 0, Math.PI * 2);
