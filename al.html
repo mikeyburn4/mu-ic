@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Music Visualizer</title>
+    <style>
+        body, html {
+            margin: 0;
+            overflow: hidden;
+            background-color: black;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="visualizer"></canvas>
+    <script>
+        const canvas = document.getElementById('visualizer');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function (stream) {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioCtx.createAnalyser();
+                const source = audioCtx.createMediaStreamSource(stream);
+                source.connect(analyser);
+
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+
+                function draw() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    analyser.getByteFrequencyData(dataArray);
+
+                    const barWidth = (canvas.width / bufferLength) * 2.5;
+                    let barHeight;
+                    let x = 0;
+
+                    // Bars
+                    for (let i = 0; i < bufferLength; i++) {
+                        barHeight = dataArray[i];
+
+                        const r = barHeight + 25 * (i / bufferLength);
+                        const g = 250 * (i / bufferLength);
+                        const b = 50;
+
+                        ctx.fillStyle = `rgb(${r},${g},${b})`;
+                        ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
+
+                        x += barWidth + 1;
+                    }
+
+                    // Circles
+                    ctx.beginPath();
+                    for (let i = 0; i < bufferLength; i++) {
+                        const radius = dataArray[i] / 4;
+                        const angle = (i / bufferLength) * Math.PI * 2;
+                        const x = canvas.width / 2 + Math.cos(angle) * radius * 5;
+                        const y = canvas.height / 2 + Math.sin(angle) * radius * 5;
+                        const color = `rgb(${dataArray[i]}, ${dataArray[i] / 2}, 255)`;
+
+                        ctx.fillStyle = color;
+                        ctx.arc(x, y, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.closePath();
+
+                    // Swirling Lines
+                    ctx.beginPath();
+                    for (let i = 0; i < bufferLength; i++) {
+                        const lineLength = dataArray[i] / 2;
+                        const angle = (i / bufferLength) * Math.PI * 2 + performance.now() / 1000;
+                        const x1 = canvas.width / 2 + Math.cos(angle) * lineLength;
+                        const y1 = canvas.height / 2 + Math.sin(angle) * lineLength;
+                        const x2 = canvas.width / 2 + Math.cos(angle + Math.PI) * lineLength;
+                        const y2 = canvas.height / 2 + Math.sin(angle + Math.PI) * lineLength;
+                        const lineColor = `rgb(${250 - dataArray[i]}, ${50}, ${dataArray[i] / 2})`;
+
+                        ctx.strokeStyle = lineColor;
+                        ctx.lineWidth = 2;
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                    }
+                    ctx.stroke();
+                    ctx.closePath();
+
+                    // Cloudy Particle Effects
+                    for (let i = 0; i < bufferLength; i++) {
+                        const particleSize = dataArray[i] / 8;
+                        const particleX = Math.random() * canvas.width;
+                        const particleY = Math.random() * canvas.height;
+                        const particleColor = `rgba(${dataArray[i]}, ${150 + i}, 200, 0.5)`;
+
+                        ctx.fillStyle = particleColor;
+                        ctx.beginPath();
+                        ctx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    requestAnimationFrame(draw);
+                }
+
+                draw();
+            })
+            .catch(function (err) {
+                console.log('Error: ' + err);
+            });
+    </script>
+</body>
+</html>
